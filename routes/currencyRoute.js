@@ -1,8 +1,12 @@
 const express = require('express');
-const { getExchangeRates } = require('../controller/currencyCtrl');
+const { getExchangeRates, getCurrencyCodes, getHistory } = require('../controller/currencyCtrl');
+const { authMiddleware } = require('../middlewares/authMiddleware');
+
 const router = express.Router();
 
-router.get('/', getExchangeRates);
+router.post('/', authMiddleware, getExchangeRates);
+router.get('/codes', authMiddleware, getCurrencyCodes);
+router.get('/history', authMiddleware, getHistory);
 
 
 
