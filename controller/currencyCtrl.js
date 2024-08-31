@@ -7,6 +7,12 @@ const ApiKey = process.env.API_KEY;
 const getExchangeRates = asyncHandler(async (req, res) => {
 
     const { baseCurrency, targetCurrency, amount } = req.body;
+    
+    if(!baseCurrency||!targetCurrency||!amount){
+        
+        throw new Error("Invalid Currency or amount selected");
+    
+    }
     const userId = req?.user?._id;
     const { firstname } = req?.user;
     console.log("username", firstname)
@@ -34,24 +40,25 @@ const getExchangeRates = asyncHandler(async (req, res) => {
     }
     const rate = targetRate / baseRate
 
-    const convertedAmount = amount * rate;
+    const convertedAmount = (amount * rate).toFixed(2);
     // Log the codes to the console
     const history = new History({
         users: [userId],
-        logs: `User requested to convert ${baseCurrency} to ${targetCurrency} with amount of ${amount}`,
+        logs: `Conversion of ${baseCurrency} to ${targetCurrency} with amount of ${amount}`,
 
     });
     await history.save();
+    
 
-    const populatedHistory = await History.findById(history._id).populate('users', 'firstname');
+    // const populatedHistory = await History.findById(history._id).populate('users', 'firstname');
 
     return res.json({ convertedAmount });
 
 });
 
 const getCurrencyCodes = asyncHandler(async (req, res) => {
-
-    const currencies = await axios.get(`https://api.freecurrencyapi.com/v1/currencies?apikey=${ApiKey}`)
+    try {
+        const currencies = await axios.get(`https://api.freecurrencyapi.com/v1/currencies?apikey=${ApiKey}`)
 
     const currenciesData = currencies.data.data;
 
@@ -59,6 +66,10 @@ const getCurrencyCodes = asyncHandler(async (req, res) => {
     const currencyCodes = Object.keys(currenciesData);
 
     return res.json({ currencyCodes });
+    } catch (error) {
+        throw new Error("curr codes error",error)
+    }
+    
 
 });
 
